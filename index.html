@@ -1,0 +1,1337 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>国庆潮港之旅</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;900&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ease: cubic-bezier(.77, 0, .18, 1);
+    --ease-out: cubic-bezier(.16, 1, .3, 1);
+    --spring: cubic-bezier(.34, 1.56, .64, 1);
+    --serif: "Noto Serif SC", "Songti SC", "SimSun", serif;
+    --sans: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    --px: 0; --py: 0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: #0b0a10;
+    color: #fff;
+    font-family: var(--sans);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- 幻灯片基础 ---------- */
+  .deck { position: fixed; inset: 0; perspective: 1800px; }
+  .slide {
+    position: absolute; inset: 0;
+    background: var(--bg);
+    color: var(--fg);
+    visibility: hidden;
+    overflow: hidden;
+    backface-visibility: hidden;
+    will-change: transform, clip-path;
+  }
+  .slide.is-active, .slide.is-leaving { visibility: visible; }
+  .slide.is-active { z-index: 2; }
+  .slide.is-leaving { z-index: 1; }
+  /* 每页柔和光晕背景 */
+  .slide::before {
+    content: ""; position: absolute; inset: -20%;
+    background:
+      radial-gradient(40% 50% at 15% 20%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%),
+      radial-gradient(35% 45% at 85% 85%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%);
+    translate: calc(var(--px) * 30px) calc(var(--py) * 30px);
+    animation: aurora 16s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+  @keyframes aurora {
+    to { transform: rotate(8deg) scale(1.1); }
+  }
+
+  .slide-inner {
+    position: relative; z-index: 1;
+    height: 100%;
+    overflow-y: auto;
+    padding: clamp(24px, 6vh, 72px) clamp(16px, 6vw, 96px) 96px;
+    display: grid;
+    align-content: center;
+    scrollbar-width: none;
+  }
+  .slide-inner::-webkit-scrollbar { display: none; }
+
+  /* 背景大字 */
+  .glyph {
+    position: absolute;
+    right: -4vw; bottom: -8vh;
+    font-family: var(--serif); font-weight: 900;
+    font-size: min(70vh, 60vw);
+    line-height: 1;
+    color: transparent;
+    -webkit-text-stroke: 2px color-mix(in srgb, var(--accent) 45%, transparent);
+    background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%);
+    -webkit-background-clip: text; background-clip: text;
+    opacity: 0;
+    pointer-events: none;
+    user-select: none;
+    transform: translateY(18%) rotate(-6deg) scale(.85);
+    translate: calc(var(--px) * -50px) calc(var(--py) * -40px);
+    transition: transform 1800ms var(--ease-out), opacity 1600ms var(--ease-out);
+  }
+  .slide.is-active.shown .glyph { transform: none; opacity: .55; }
+
+  /* 逐项入场 */
+  .rv {
+    opacity: 0;
+    transform: translateY(34px);
+    filter: blur(8px);
+    transition:
+      opacity 800ms var(--ease-out),
+      transform 1000ms var(--ease-out),
+      filter 800ms var(--ease-out);
+    transition-delay: calc(var(--i, 0) * 90ms + 250ms);
+  }
+  .slide.shown .rv { opacity: 1; transform: none; filter: none; }
+
+  /* 标题逐字飞入 */
+  .split { perspective: 700px; }
+  .split .ch {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(.9em) rotateX(-90deg) scale(.8);
+    transform-origin: 50% 100%;
+    filter: blur(6px);
+    transition:
+      opacity 700ms var(--ease-out),
+      transform 1000ms var(--spring),
+      filter 700ms var(--ease-out);
+    transition-delay: calc(var(--i, 0) * 90ms + 250ms + var(--c) * 45ms);
+  }
+  .slide.shown .split .ch { opacity: 1; transform: none; filter: none; }
+
+  /* ---------- 排版 ---------- */
+  .kicker {
+    font-size: 13px; letter-spacing: .3em; font-weight: 700;
+    color: var(--accent);
+    text-transform: uppercase;
+    display: flex; align-items: center; gap: 12px;
+    white-space: nowrap;
+  }
+  .kicker::before {
+    content: ""; width: 0; height: 2px; background: currentColor;
+    transition: width 900ms var(--ease) 300ms;
+  }
+  .slide.shown .kicker::before { width: 36px; }
+  h1, h2 { font-family: var(--serif); font-weight: 900; line-height: 1.12; }
+  h1 { font-size: clamp(44px, 9vw, 128px); margin: 18px 0 20px; }
+  h2 { font-size: clamp(34px, 6vw, 80px); margin: 14px 0 10px; }
+  .lead { font-size: clamp(16px, 1.6vw, 21px); line-height: 1.7; opacity: .82; max-width: 36em; }
+  .slide.shown .lead.rv { opacity: .82; }
+  .muted { opacity: .65; }
+  .slide.shown .muted.rv { opacity: .65; }
+
+  .day-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: clamp(24px, 5vw, 80px);
+    align-items: center;
+  }
+  .date {
+    font-family: var(--serif); font-weight: 900;
+    font-size: clamp(64px, 11vw, 160px);
+    line-height: .9;
+    color: var(--accent);
+    letter-spacing: -.02em;
+    font-variant-numeric: tabular-nums;
+    translate: calc(var(--px) * 10px) calc(var(--py) * 10px);
+    text-shadow: 0 0 40px color-mix(in srgb, var(--accent) 35%, transparent);
+  }
+  .slide.shown .date { animation: glitch 900ms steps(1) 350ms 1; }
+  @keyframes glitch {
+    0%   { text-shadow: 4px 0 #ff2a6d, -4px 0 #05d9e8; transform: translateX(-3px) skewX(-8deg); }
+    15%  { text-shadow: -5px 0 #ff2a6d, 5px 0 #05d9e8; transform: translateX(4px); clip-path: inset(10% 0 45% 0); }
+    30%  { text-shadow: 3px 2px #ff2a6d, -3px -2px #05d9e8; transform: none; clip-path: inset(55% 0 5% 0); }
+    45%  { text-shadow: -2px 0 #ff2a6d, 2px 0 #05d9e8; transform: translateX(-2px) skewX(6deg); clip-path: none; }
+    60%  { text-shadow: 1px 0 #ff2a6d, -1px 0 #05d9e8; transform: none; }
+    100% { text-shadow: 0 0 40px color-mix(in srgb, var(--accent) 35%, transparent); }
+  }
+  .date small { font-size: .28em; letter-spacing: .1em; color: var(--fg); opacity: .6; margin-left: .3em; }
+  .route {
+    display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    margin-top: 18px;
+    font-size: clamp(15px, 1.4vw, 18px); font-weight: 500;
+  }
+  .route .arr { color: var(--accent); display: inline-block; animation: bob 1.6s ease-in-out infinite; }
+  @keyframes bob { 50% { transform: translateX(5px); } }
+
+  .card {
+    position: relative;
+    background: color-mix(in srgb, var(--fg) 7%, transparent);
+    border: 1px solid color-mix(in srgb, var(--fg) 14%, transparent);
+    border-radius: 18px;
+    padding: clamp(18px, 2.4vw, 30px);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transform-style: preserve-3d;
+  }
+  .slide.shown .card.rv {
+    transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  }
+  .card.hover { transition: transform 180ms ease-out, opacity 800ms, filter 800ms !important; transition-delay: 0s !important; }
+  .card::after {
+    content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+    background: radial-gradient(380px circle at var(--mx, 50%) var(--my, 50%), color-mix(in srgb, var(--accent) 28%, transparent), transparent 45%);
+    opacity: 0; transition: opacity 300ms;
+  }
+  .card.hover::after { opacity: 1; }
+  .card + .card { margin-top: 16px; }
+  .card h3 {
+    font-size: 13px; letter-spacing: .2em; font-weight: 700;
+    color: var(--accent); margin-bottom: 12px;
+  }
+  .hotel { font-family: var(--serif); font-size: clamp(20px, 2vw, 26px); font-weight: 600; }
+  .hotel-sub { font-size: 14px; opacity: .65; margin-top: 4px; }
+
+  .timeline, .check { list-style: none; position: relative; }
+  .timeline li, .check li {
+    opacity: 0; transform: translateX(-18px);
+    transition: opacity 600ms var(--ease-out), transform 800ms var(--ease-out);
+    transition-delay: calc(var(--i, 0) * 90ms + 450ms + var(--li, 0) * 110ms);
+  }
+  .slide.shown .timeline li, .slide.shown .check li { opacity: 1; transform: none; }
+  .timeline li {
+    position: relative;
+    padding: 0 0 16px 26px;
+    line-height: 1.6;
+    font-size: clamp(15px, 1.3vw, 17px);
+  }
+  .timeline li:last-child { padding-bottom: 0; }
+  .timeline li::before {
+    content: ""; position: absolute; left: 0; top: .55em;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2.4s ease-out infinite;
+    animation-delay: calc(var(--li, 0) * 300ms);
+  }
+  @keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 70%, transparent); }
+    70%, 100% { box-shadow: 0 0 0 10px transparent; }
+  }
+  .timeline li::after {
+    content: ""; position: absolute; left: 4.5px; top: 1.3em; bottom: 0;
+    width: 1px; background: color-mix(in srgb, var(--fg) 25%, transparent);
+  }
+  .timeline li:last-child::after { display: none; }
+  .timeline b { font-weight: 700; }
+  .t { font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 700; margin-right: 8px; }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag {
+    font-size: 14px; padding: 6px 12px; border-radius: 999px;
+    background: color-mix(in srgb, var(--accent) 18%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+    opacity: 0; transform: scale(.4) translateY(10px);
+    transition: opacity 500ms var(--ease-out), transform 700ms var(--spring), background 200ms;
+    transition-delay: calc(var(--i, 0) * 90ms + 500ms + var(--li, 0) * 70ms), calc(var(--i, 0) * 90ms + 500ms + var(--li, 0) * 70ms), 0s;
+  }
+  .slide.shown .tag { opacity: 1; transform: none; }
+  .tag:hover { background: color-mix(in srgb, var(--accent) 40%, transparent); }
+  .tip {
+    margin-top: 16px; font-size: 14px; line-height: 1.65;
+    padding: 12px 14px; border-radius: 12px;
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    border-left: 3px solid var(--accent);
+  }
+  .tip strong { color: var(--accent); }
+
+  /* ---------- 封面 ---------- */
+  .cover-stops {
+    display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center;
+    margin-top: 28px; font-size: clamp(15px, 1.6vw, 20px); font-weight: 500;
+  }
+  .cover-stops .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+  .cover h1 .ch { text-shadow: 0 0 40px rgba(255, 154, 90, .35); }
+  .sun {
+    position: absolute; z-index: 0;
+    width: min(62vh, 62vw); aspect-ratio: 1;
+    right: 6vw; top: 50%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #ffd08a, #ff7a3d 35%, #e0452d 60%, #a3202a);
+    box-shadow: 0 0 120px 20px rgba(255, 110, 60, .35);
+    transform: translateY(-30%) scale(.5);
+    translate: calc(var(--px) * 30px) calc(var(--py) * 30px);
+    opacity: 0;
+    transition: transform 2000ms var(--ease-out), opacity 1400ms var(--ease-out);
+  }
+  .sun::before {
+    content: ""; position: absolute; inset: -40%;
+    background: repeating-conic-gradient(from 0deg, rgba(255, 170, 100, .35) 0deg 3deg, transparent 3deg 15deg);
+    -webkit-mask: radial-gradient(closest-side, transparent 57%, #000 60%, transparent 100%);
+    mask: radial-gradient(closest-side, transparent 57%, #000 60%, transparent 100%);
+    animation: spin 60s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(1turn); } }
+  .slide.shown .sun { transform: translateY(-50%) scale(1); opacity: .95; }
+  .waves { position: absolute; left: -5%; right: -5%; bottom: 0; z-index: 0; height: 32vh; width: 110%; translate: calc(var(--px) * -20px) 0; }
+  .waves path { animation: drift 9s ease-in-out infinite alternate; }
+  .waves path:nth-child(2) { animation-duration: 12s; animation-direction: alternate-reverse; }
+  .waves path:nth-child(3) { animation-duration: 7s; }
+  @keyframes drift { to { transform: translateX(-6%); } }
+
+  /* ---------- 路线总览 ---------- */
+  .map-wrap { margin-top: 28px; width: 100%; }
+  .map-wrap svg { width: 100%; height: auto; overflow: visible; }
+  .map-path, .map-glow {
+    fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round;
+    stroke-dasharray: var(--len); stroke-dashoffset: var(--len);
+    transition: stroke-dashoffset 2400ms var(--ease) 400ms;
+  }
+  .map-glow { stroke-width: 10; opacity: .2; filter: blur(4px); }
+  .slide.shown .map-path, .slide.shown .map-glow { stroke-dashoffset: 0; }
+  .stop circle { fill: var(--bg); stroke: var(--accent); stroke-width: 3; }
+  .stop .ring { fill: none; stroke: var(--accent); stroke-width: 2; transform-box: fill-box; transform-origin: center; animation: ring 2.2s ease-out infinite; animation-delay: calc(var(--i) * 250ms); }
+  @keyframes ring { from { transform: scale(1); opacity: .8; } to { transform: scale(3); opacity: 0; } }
+  .stop text { fill: var(--fg); font-family: var(--serif); font-weight: 600; font-size: 22px; }
+  .stop text.d { font-family: var(--sans); font-weight: 500; font-size: 14px; opacity: .6; }
+  .stop { opacity: 0; transform: translateY(14px) scale(.6); transform-box: fill-box; transform-origin: center; transition: opacity 600ms var(--ease-out), transform 700ms var(--spring); }
+  .slide.shown .stop { opacity: 1; transform: none; transition-delay: calc(var(--i) * 380ms + 500ms); }
+  .traveler { fill: var(--accent); opacity: 0; transition: opacity 600ms 2800ms; filter: drop-shadow(0 0 6px var(--accent)); }
+  .slide.shown .traveler { opacity: 1; }
+
+  .overview-list {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 12px; margin-top: 28px;
+  }
+  .ov {
+    position: relative; overflow: hidden;
+    padding: 14px 16px; border-radius: 14px; cursor: pointer;
+    background: color-mix(in srgb, var(--fg) 6%, transparent);
+    border: 1px solid color-mix(in srgb, var(--fg) 12%, transparent);
+    text-align: left; color: inherit; font: inherit;
+  }
+  .slide.shown .ov.rv { transition: opacity 800ms var(--ease-out), transform 400ms var(--spring), filter 800ms, background 200ms; }
+  .ov::before {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(110deg, transparent 30%, color-mix(in srgb, var(--accent) 35%, transparent) 50%, transparent 70%);
+    transform: translateX(-100%); transition: transform 700ms var(--ease);
+  }
+  .ov:hover::before { transform: translateX(100%); }
+  .slide.shown .ov.rv:hover { background: color-mix(in srgb, var(--accent) 18%, transparent); transform: translateY(-4px); transition-delay: 0s; }
+  .ov .d { font-size: 13px; color: var(--accent); font-weight: 700; letter-spacing: .08em; }
+  .ov .n { font-family: var(--serif); font-size: 19px; font-weight: 600; margin-top: 4px; }
+
+  /* ---------- 清单 ---------- */
+  .check { display: grid; gap: 10px; }
+  .check label {
+    display: flex; gap: 12px; align-items: flex-start; cursor: pointer;
+    font-size: clamp(15px, 1.3vw, 17px); line-height: 1.5;
+  }
+  .check input { appearance: none; flex: none; width: 20px; height: 20px; margin-top: 2px; border-radius: 6px; border: 2px solid var(--accent); display: grid; place-content: center; cursor: pointer; transition: transform 300ms var(--spring); }
+  .check input:active { transform: scale(.8); }
+  .check input::after { content: ""; width: 10px; height: 10px; border-radius: 3px; background: var(--accent); transform: scale(0) rotate(-90deg); transition: transform 300ms var(--spring); }
+  .check input:checked::after { transform: scale(1) rotate(0); }
+  .check span { background: linear-gradient(currentColor, currentColor) 0 55% / 0 1.5px no-repeat; transition: background-size 400ms var(--ease), opacity 400ms; }
+  .check input:checked + span { opacity: .5; background-size: 100% 1.5px; }
+
+  /* ---------- 全局特效层 ---------- */
+  #fx { position: fixed; inset: 0; z-index: 3; pointer-events: none; }
+  .grain {
+    position: fixed; inset: -100px; z-index: 4; pointer-events: none; opacity: .07;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    animation: grain 1s steps(6) infinite;
+  }
+  @keyframes grain {
+    0% { transform: translate(0, 0); } 20% { transform: translate(-40px, 20px); } 40% { transform: translate(30px, -30px); }
+    60% { transform: translate(-20px, 40px); } 80% { transform: translate(40px, 10px); } 100% { transform: translate(0, 0); }
+  }
+  .shutter { position: fixed; inset: 0; z-index: 6; display: none; pointer-events: none; }
+  .shutter i { flex: 1; transform: scaleY(0); }
+  .cursor {
+    position: fixed; left: 0; top: 0; z-index: 20; pointer-events: none;
+    width: 36px; height: 36px; margin: -18px 0 0 -18px; border-radius: 50%;
+    border: 1.5px solid #fff; mix-blend-mode: difference;
+    transition: width 250ms var(--ease-out), height 250ms var(--ease-out), margin 250ms var(--ease-out), background 250ms;
+    opacity: 0;
+  }
+  .cursor.big { width: 64px; height: 64px; margin: -32px 0 0 -32px; background: rgba(255, 255, 255, .15); }
+  .cursor.on { opacity: 1; }
+
+  /* 开场 */
+  .intro { position: fixed; inset: 0; z-index: 30; cursor: pointer; }
+  .intro .half { position: absolute; left: 0; right: 0; height: 50.5%; background: #120d22; transition: transform 1100ms var(--ease); }
+  .intro .top { top: 0; }
+  .intro .bottom { bottom: 0; }
+  .intro .txt {
+    position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 18px;
+    transition: opacity 600ms, transform 1100ms var(--ease);
+  }
+  .intro .big { font-family: var(--serif); font-weight: 900; font-size: clamp(40px, 8vw, 96px); letter-spacing: .08em; color: #fff4e6; }
+  .intro .big span { display: inline-block; opacity: 0; transform: translateY(40px) scale(.6); filter: blur(10px); animation: introCh 900ms var(--spring) forwards; animation-delay: calc(var(--c) * 90ms + 200ms); }
+  @keyframes introCh { to { opacity: 1; transform: none; filter: none; } }
+  .intro .line { height: 2px; width: 0; margin: 0 auto; background: linear-gradient(90deg, transparent, #ff9a5a, transparent); animation: introLine 1000ms var(--ease) 700ms forwards; }
+  @keyframes introLine { to { width: min(420px, 70vw); } }
+  .intro .sub { color: #ff9a5a; letter-spacing: .5em; font-size: 13px; opacity: 0; animation: introCh 800ms var(--ease-out) 1000ms forwards; }
+  .intro.open .top { transform: translateY(-100%); }
+  .intro.open .bottom { transform: translateY(100%); }
+  .intro.open .txt { opacity: 0; transform: scale(1.3); }
+
+  /* ---------- 导航 ---------- */
+  .progress {
+    position: fixed; left: 0; top: 0; height: 3px; z-index: 10;
+    background: var(--nav-accent, #fff);
+    box-shadow: 0 0 12px var(--nav-accent, #fff), 0 0 2px var(--nav-accent, #fff);
+    width: 0; transition: width 900ms var(--ease), background 900ms, box-shadow 900ms;
+  }
+  .nav {
+    position: fixed; z-index: 10;
+    left: 50%; bottom: max(18px, env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    display: flex; align-items: center; gap: 14px;
+    padding: 8px 10px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, .3);
+    border: 1px solid rgba(255, 255, 255, .12);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: #fff;
+  }
+  .nav button.arrow {
+    width: 36px; height: 36px; border-radius: 50%; border: 0;
+    background: rgba(255, 255, 255, .12); color: #fff; cursor: pointer;
+    display: grid; place-content: center; transition: background 200ms, transform 300ms var(--spring);
+  }
+  .nav button.arrow:hover { background: var(--nav-accent, rgba(255, 255, 255, .25)); transform: scale(1.12); }
+  .nav button.arrow:disabled { opacity: .3; cursor: default; transform: none; background: rgba(255, 255, 255, .12); }
+  .dots { display: flex; gap: 6px; }
+  .dots button {
+    width: 8px; height: 8px; border-radius: 999px; border: 0; padding: 0;
+    background: rgba(255, 255, 255, .4); cursor: pointer;
+    transition: width 500ms var(--spring), background 400ms;
+  }
+  .dots button[aria-current="true"] { width: 28px; background: var(--nav-accent, #fff); }
+  .counter {
+    position: fixed; z-index: 10; right: clamp(16px, 3vw, 36px); top: clamp(16px, 3vh, 32px);
+    font-variant-numeric: tabular-nums; font-size: 13px; letter-spacing: .15em;
+    color: var(--nav-fg, #fff); opacity: .7; transition: color 900ms;
+    display: flex; gap: .4em; overflow: hidden;
+  }
+  .counter .cur { display: inline-block; }
+  .counter .cur.flip { animation: flip 600ms var(--ease-out); }
+  @keyframes flip { from { transform: translateY(var(--from, 100%)); opacity: 0; } }
+  .hint {
+    position: fixed; z-index: 10; left: clamp(16px, 3vw, 36px); top: clamp(16px, 3vh, 32px);
+    font-size: 12px; letter-spacing: .1em; color: var(--nav-fg, #fff); opacity: .5; transition: color 900ms;
+  }
+
+  /* ---------- 响应式 ---------- */
+  @media (max-width: 820px) {
+    .day-grid { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+    .slide-inner { align-content: start; padding-top: 64px; }
+    .cover .slide-inner { align-content: center; }
+    .hint { display: none; }
+    .sun { right: -20vw; top: 30%; }
+    .dots { display: none; }
+  }
+  @media (hover: none), (pointer: coarse) { .cursor { display: none; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition-duration: 1ms !important; transition-delay: 0ms !important; }
+    .intro { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="intro" id="intro" aria-hidden="true">
+  <div class="half top"></div>
+  <div class="half bottom"></div>
+  <div class="txt">
+    <div class="big"><span style="--c:0">国</span><span style="--c:1">庆</span><span style="--c:2">·</span><span style="--c:3">向</span><span style="--c:4">南</span></div>
+    <div class="line"></div>
+    <div class="sub">2026 · 9.30 — 10.07</div>
+  </div>
+</div>
+
+<div class="progress" id="progress"></div>
+<div class="hint">← → 翻页 · 空格下一页 · F 全屏</div>
+<div class="counter" id="counter"><span class="cur" id="cur">01</span><span>/</span><span id="total">10</span></div>
+<canvas id="fx" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
+<div class="shutter" id="shutter" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+<div class="cursor" id="cursor" aria-hidden="true"></div>
+
+<main class="deck" id="deck">
+
+  <!-- 1. 封面 -->
+  <section class="slide cover" data-title="封面" data-fx="stars" style="--bg:#1b1430; --fg:#fff4e6; --accent:#ff9a5a;">
+    <div class="sun"></div>
+    <svg class="waves" viewBox="0 0 1440 320" preserveAspectRatio="none" aria-hidden="true">
+      <path fill="#241a40" d="M0 130 C 240 70 480 190 720 130 S 1200 70 1440 130 L 1600 130 L 1600 320 L 0 320 Z"/>
+      <path fill="#2b1f4a" d="M0 170 C 240 110 480 230 720 170 S 1200 110 1440 170 L 1600 170 L 1600 320 L 0 320 Z"/>
+      <path fill="#3a2a5e" opacity=".85" d="M0 230 C 300 180 540 280 840 230 S 1260 180 1600 230 L 1600 320 L 0 320 Z"/>
+    </svg>
+    <div class="slide-inner">
+      <div class="kicker rv scr" style="--i:0">2026 国庆 · 8 天 7 晚</div>
+      <h1 class="rv" style="--i:1">潮州 · 惠州<br>· 香港</h1>
+      <p class="lead rv" style="--i:5">从古城牌坊到维港夜色，一路向南，看海、吃茶、上岛。</p>
+      <div class="cover-stops rv" style="--i:6">
+        <span>上海</span><span class="dot"></span><span>揭阳</span><span class="dot"></span><span>潮州</span><span class="dot"></span><span>惠州</span><span class="dot"></span><span>香港</span><span class="dot"></span><span>深圳</span><span class="dot"></span><span>上海</span>
+      </div>
+      <p class="muted rv" style="--i:7; margin-top:36px; font-size:14px;">9 月 30 日 — 10 月 7 日　·　按 → 开始</p>
+    </div>
+  </section>
+
+  <!-- 2. 路线总览 -->
+  <section class="slide" data-title="路线总览" data-fx="dust" style="--bg:#f4efe6; --fg:#1f1b16; --accent:#c8412e;">
+    <div class="glyph">程</div>
+    <div class="slide-inner">
+      <div class="kicker rv scr" style="--i:0">Route Overview</div>
+      <h2 class="rv" style="--i:1">一条向南的线</h2>
+      <div class="map-wrap rv" style="--i:2">
+        <svg viewBox="0 0 1200 230" role="img" aria-label="行程路线：上海、潮州、惠州、香港、深圳、上海">
+          <path class="map-glow" d="M60 150 C 180 40 260 40 300 110 S 440 190 520 120 S 680 40 760 120 S 900 200 980 130 S 1100 60 1140 150"/>
+          <path class="map-path" id="mapPath" d="M60 150 C 180 40 260 40 300 110 S 440 190 520 120 S 680 40 760 120 S 900 200 980 130 S 1100 60 1140 150"/>
+          <g class="stop" style="--i:0"><circle class="ring" cx="60" cy="150" r="10"/><circle cx="60" cy="150" r="10"/><text x="60" y="198" text-anchor="middle">上海</text><text class="d" x="60" y="220" text-anchor="middle">9/30 出发</text></g>
+          <g class="stop" style="--i:1"><circle class="ring" cx="300" cy="110" r="10"/><circle cx="300" cy="110" r="10"/><text x="300" y="70" text-anchor="middle">潮州</text><text class="d" x="300" y="46" text-anchor="middle">9/30 – 10/1</text></g>
+          <g class="stop" style="--i:2"><circle class="ring" cx="520" cy="120" r="10"/><circle cx="520" cy="120" r="10"/><text x="520" y="170" text-anchor="middle">惠州</text><text class="d" x="520" y="192" text-anchor="middle">10/1 – 10/3</text></g>
+          <g class="stop" style="--i:3"><circle class="ring" cx="760" cy="120" r="10"/><circle cx="760" cy="120" r="10"/><text x="760" y="76" text-anchor="middle">香港</text><text class="d" x="760" y="52" text-anchor="middle">10/3 – 10/7</text></g>
+          <g class="stop" style="--i:4"><circle class="ring" cx="980" cy="130" r="10"/><circle cx="980" cy="130" r="10"/><text x="980" y="180" text-anchor="middle">深圳</text><text class="d" x="980" y="202" text-anchor="middle">10/7</text></g>
+          <g class="stop" style="--i:5"><circle class="ring" cx="1140" cy="150" r="10"/><circle cx="1140" cy="150" r="10"/><text x="1140" y="110" text-anchor="middle">上海</text><text class="d" x="1140" y="86" text-anchor="middle">返程</text></g>
+          <circle class="traveler" r="7">
+            <animateMotion dur="7s" repeatCount="indefinite" rotate="auto"><mpath href="#mapPath"/></animateMotion>
+          </circle>
+        </svg>
+      </div>
+      <div class="overview-list">
+        <button class="ov rv" style="--i:3" data-go="2"><div class="d">9/30</div><div class="n">抵达潮州</div></button>
+        <button class="ov rv" style="--i:4" data-go="3"><div class="d">10/1</div><div class="n">潮州古城</div></button>
+        <button class="ov rv" style="--i:5" data-go="4"><div class="d">10/2</div><div class="n">惠州</div></button>
+        <button class="ov rv" style="--i:6" data-go="5"><div class="d">10/3</div><div class="n">入港 · 西贡</div></button>
+        <button class="ov rv" style="--i:7" data-go="6"><div class="d">10/4</div><div class="n">南丫岛</div></button>
+        <button class="ov rv" style="--i:8" data-go="7"><div class="d">10/5 – 6</div><div class="n">市区 · 故宫</div></button>
+        <button class="ov rv" style="--i:9" data-go="8"><div class="d">10/7</div><div class="n">返沪</div></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. 9/30 -->
+  <section class="slide" data-title="9/30 抵达潮州" data-fx="lanterns" style="--bg:#7a1e1e; --fg:#fff1e0; --accent:#ffc861;">
+    <div class="glyph">潮</div>
+    <div class="slide-inner">
+      <div class="day-grid">
+        <div>
+          <div class="kicker rv scr" style="--i:0">Day 1 · 周三</div>
+          <div class="date rv" style="--i:1">9/30</div>
+          <h2 class="rv" style="--i:2">出发，去潮州</h2>
+          <div class="route rv" style="--i:4"><span>上海</span><span class="arr">→</span><span>揭阳</span><span class="arr">→</span><span>潮州古城</span></div>
+        </div>
+        <div>
+          <div class="card rv" style="--i:3">
+            <h3>今日安排</h3>
+            <ul class="timeline">
+              <li><b>上海出发</b>，前往揭阳</li>
+              <li>抵达揭阳后转车去<b>潮州古城</b>（车程约 1 小时）</li>
+              <li>入住放行李，晚上去<b>牌坊街</b>随便走走、吃宵夜</li>
+            </ul>
+          </div>
+          <div class="card rv" style="--i:4">
+            <h3>住宿</h3>
+            <div class="hotel">潮州古城亚朵酒店</div>
+            <div class="hotel-sub">住 1 晚 · 9/30</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. 10/1 潮州 -->
+  <section class="slide" data-title="10/1 潮州古城" data-fx="petals" data-fx-colors="#e0553f,#f29a76,#ffcf9e" style="--bg:#f6e7cf; --fg:#3a1d12; --accent:#b8321f;">
+    <div class="glyph">城</div>
+    <div class="slide-inner">
+      <div class="day-grid">
+        <div>
+          <div class="kicker rv scr" style="--i:0">Day 2 · 周四 · 国庆</div>
+          <div class="date rv" style="--i:1">10/1</div>
+          <h2 class="rv" style="--i:2">潮州古城一整天</h2>
+          <p class="lead rv" style="--i:4">白天逛古城，吃够潮汕味，晚上夜行去惠州。</p>
+        </div>
+        <div>
+          <div class="card rv" style="--i:3">
+            <h3>今日安排</h3>
+            <ul class="timeline">
+              <li><span class="t">白天</span>古城漫步：广济桥、牌坊街、开元寺、韩文公祠</li>
+              <li><span class="t">傍晚</span>收拾行李、退房寄存</li>
+              <li><span class="t">21:00</span><b>出发去惠州</b>，深夜入住</li>
+            </ul>
+          </div>
+          <div class="card rv" style="--i:4">
+            <h3>想吃</h3>
+            <div class="tags">
+              <span class="tag">牛肉火锅</span><span class="tag">粿条汤</span><span class="tag">鸭母捻</span><span class="tag">春饼</span><span class="tag">工夫茶</span>
+            </div>
+            <div class="tip"><strong>提示</strong>　国庆当天古城人会很多，热门景点建议早上先去。</div>
+          </div>
+          <div class="card rv" style="--i:5">
+            <h3>住宿</h3>
+            <div class="hotel">惠州金山湖港惠轻居亚朵酒店</div>
+            <div class="hotel-sub">住 2 晚 · 10/1 – 10/3</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. 惠州 -->
+  <section class="slide" data-title="10/2 惠州" data-fx="fireflies" style="--bg:#0f3b36; --fg:#e8f6ef; --accent:#7fe0b8;">
+    <div class="glyph">惠</div>
+    <div class="slide-inner">
+      <div class="day-grid">
+        <div>
+          <div class="kicker rv scr" style="--i:0">Day 3 · 周五</div>
+          <div class="date rv" style="--i:1">10/2</div>
+          <h2 class="rv" style="--i:2">惠州，慢一点</h2>
+          <p class="lead rv" style="--i:4">“一住惠州，便一生惠州”。前一晚到得晚，今天睡到自然醒。</p>
+        </div>
+        <div>
+          <div class="card rv" style="--i:3">
+            <h3>可以去</h3>
+            <ul class="timeline">
+              <li><b>惠州西湖</b> · 苏堤、泗洲塔，适合散步骑车</li>
+              <li><b>东坡祠</b> · 苏轼在惠州的故居</li>
+              <li><b>水东街</b> · 老街骑楼，晚上热闹</li>
+              <li><b>金山湖</b> · 就在酒店附近，傍晚走走</li>
+            </ul>
+          </div>
+          <div class="card rv" style="--i:4">
+            <h3>想吃</h3>
+            <div class="tags">
+              <span class="tag">梅菜扣肉</span><span class="tag">横沥汤粉</span><span class="tag">客家酿豆腐</span><span class="tag">盐焗鸡</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. 10/3 入港 · 西贡 -->
+  <section class="slide" data-title="10/3 入港 · 西贡" data-fx="bubbles" style="--bg:#0b2a4a; --fg:#eaf4ff; --accent:#5cc8ff;">
+    <div class="glyph">港</div>
+    <div class="slide-inner">
+      <div class="day-grid">
+        <div>
+          <div class="kicker rv scr" style="--i:0">Day 4 · 周六</div>
+          <div class="date rv" style="--i:1">10/3</div>
+          <h2 class="rv" style="--i:2">高铁入港，<br>下午去西贡</h2>
+          <div class="route rv" style="--i:5"><span>惠州</span><span class="arr">→ 高铁 →</span><span>香港</span><span class="arr">→</span><span>西贡</span></div>
+        </div>
+        <div>
+          <div class="card rv" style="--i:3">
+            <h3>今日安排</h3>
+            <ul class="timeline">
+              <li><span class="t">上午</span>惠州坐<b>高铁去香港</b></li>
+              <li>到酒店放下行李</li>
+              <li><span class="t">下午</span>去<b>西贡</b>：海滨长廊、码头看海鲜艇，可以坐街渡出海</li>
+              <li><span class="t">晚上</span>在西贡吃海鲜再回市区</li>
+            </ul>
+            <div class="tip"><strong>交通</strong>　港铁到彩虹站，转 1A 专线小巴到西贡。</div>
+          </div>
+          <div class="card rv" style="--i:4">
+            <h3>住宿</h3>
+            <div class="hotel">都会海逸酒店</div>
+            <div class="hotel-sub">Harbour Plaza Metropolis · 红磡 · 住 4 晚 · 10/3 – 10/7</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. 10/4 南丫岛 -->
+  <section class="slide" data-title="10/4 南丫岛" data-fx="leaves" data-fx-colors="#1f8a70,#56c29a,#9be0c3" style="--bg:#e3f1ec; --fg:#12332c; --accent:#1f8a70;">
+    <div class="glyph">岛</div>
+    <div class="slide-inner">
+      <div class="day-grid">
+        <div>
+          <div class="kicker rv scr" style="--i:0">Day 5 · 周日</div>
+          <div class="date rv" style="--i:1">10/4</div>
+          <h2 class="rv" style="--i:2">南丫岛，<br>离岛一日</h2>
+          <p class="lead rv" style="--i:5">没有汽车的小岛：渡轮、山径、海滩和海鲜。</p>
+        </div>
+        <div>
+          <div class="card rv" style="--i:3">
+            <h3>推荐走法</h3>
+            <ul class="timeline">
+              <li><span class="t">上午</span>中环 4 号码头坐渡轮到<b>榕树湾</b></li>
+              <li>逛榕树湾大街，去<b>洪圣爷湾泳滩</b></li>
+              <li>走<b>家乐径</b>徒步到索罟湾（约 1.5–2 小时）</li>
+              <li><span class="t">傍晚</span>在<b>索罟湾</b>吃海鲜，坐船回中环</li>
+            </ul>
+            <div class="tip"><strong>提示</strong>　穿好走的鞋、带水和防晒；返程船班出发前查好末班时间。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. 10/5–10/6 市区 -->
+  <section class="slide" data-title="10/5 – 10/6 市区" data-fx="bokeh" data-fx-colors="#ff6fb1,#7b6cff,#37d5ff,#ffb86b" style="--bg:#1a1030; --fg:#f6eeff; --accent:#ff6fb1;">
+    <div class="glyph">城</div>
+    <div class="slide-inner">
+      <div class="day-grid">
+        <div>
+          <div class="kicker rv scr" style="--i:0">Day 6 – 7 · 周一 / 周二</div>
+          <div class="date rv" style="--i:1">10/5<small>– 10/6</small></div>
+          <h2 class="rv" style="--i:2">城市漫游 &amp;<br>香港故宫</h2>
+          <p class="lead rv" style="--i:5">两天留给市区：博物馆、维港、老街和茶餐厅。</p>
+        </div>
+        <div>
+          <div class="card rv" style="--i:3">
+            <h3>香港故宫文化博物馆</h3>
+            <ul class="timeline">
+              <li>位于<b>西九文化区</b>，港铁九龙站 / 柯士甸站步行可达</li>
+              <li>建议提前在官网预约门票和时段</li>
+            </ul>
+            <div class="tip"><strong>注意</strong>　博物馆<b>逢周二休馆</b>（公众假期除外），10/6 正好是周二，建议把故宫排在 <b>10/5（周一）</b>。</div>
+          </div>
+          <div class="card rv" style="--i:4">
+            <h3>市区可选</h3>
+            <div class="tags">
+              <span class="tag">尖沙咀海滨</span><span class="tag">星光大道</span><span class="tag">中环 · 上环</span><span class="tag">太平山顶</span><span class="tag">旺角</span><span class="tag">天星小轮</span><span class="tag">叮叮车</span><span class="tag">茶餐厅</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9. 10/7 返程 -->
+  <section class="slide" data-title="10/7 返程" data-fx="embers" style="--bg:#2a2622; --fg:#f5efe6; --accent:#f0b35a;">
+    <div class="glyph">归</div>
+    <div class="slide-inner">
+      <div class="day-grid">
+        <div>
+          <div class="kicker rv scr" style="--i:0">Day 8 · 周三</div>
+          <div class="date rv" style="--i:1">10/7</div>
+          <h2 class="rv" style="--i:2">经深圳，回上海</h2>
+          <div class="route rv" style="--i:4"><span>香港</span><span class="arr">→</span><span>深圳</span><span class="arr">→</span><span>上海</span></div>
+        </div>
+        <div>
+          <div class="card rv" style="--i:3">
+            <h3>今日安排</h3>
+            <ul class="timeline">
+              <li>退房，从红磡出发前往深圳</li>
+              <li>过关进入深圳</li>
+              <li><b>深圳 → 上海</b>，结束旅程</li>
+            </ul>
+            <div class="tip"><strong>提示</strong>　国庆返程高峰，过关排队时间要多留一些，建议至少预留 2–3 小时缓冲。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10. 清单 -->
+  <section class="slide" data-title="行前清单" data-fx="dust" data-confetti style="--bg:#c8412e; --fg:#fff6ea; --accent:#ffe08a;">
+    <div class="glyph">行</div>
+    <div class="slide-inner">
+      <div class="day-grid">
+        <div>
+          <div class="kicker rv scr" style="--i:0">Checklist</div>
+          <h2 class="rv" style="--i:1">出发前<br>再看一眼</h2>
+          <p class="lead rv" style="--i:4">点一下即可打勾，全部勾完有惊喜 ✦</p>
+        </div>
+        <div class="card rv" style="--i:3">
+          <ul class="check" id="checklist">
+            <li><label><input type="checkbox"><span>港澳通行证 + 有效签注</span></label></li>
+            <li><label><input type="checkbox"><span>身份证</span></label></li>
+            <li><label><input type="checkbox"><span>9/30 上海 → 揭阳 票</span></label></li>
+            <li><label><input type="checkbox"><span>10/1 潮州 → 惠州 21:00 交通</span></label></li>
+            <li><label><input type="checkbox"><span>10/3 惠州 → 香港 高铁票</span></label></li>
+            <li><label><input type="checkbox"><span>10/7 深圳 → 上海 票</span></label></li>
+            <li><label><input type="checkbox"><span>香港故宫门票预约（10/5）</span></label></li>
+            <li><label><input type="checkbox"><span>八达通 / 支付方式 · 香港流量</span></label></li>
+            <li><label><input type="checkbox"><span>转换插头（香港英标三脚）</span></label></li>
+            <li><label><input type="checkbox"><span>防晒、雨具、好走的鞋</span></label></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<nav class="nav" aria-label="幻灯片导航">
+  <button class="arrow" id="prev" aria-label="上一页">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+  </button>
+  <div class="dots" id="dots"></div>
+  <button class="arrow" id="next" aria-label="下一页">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+  </button>
+</nav>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const slides = [...document.querySelectorAll('.slide')];
+  const dotsEl = $('#dots');
+  const progress = $('#progress');
+  const prevBtn = $('#prev');
+  const nextBtn = $('#next');
+  const curEl = $('#cur');
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const finePointer = matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const DUR = reduced ? 1 : 1000;
+  const EASE = 'cubic-bezier(.77,0,.18,1)';
+  const pad = n => String(n).padStart(2, '0');
+  const R = (a, b) => a + Math.random() * (b - a);
+  const pick = a => a[Math.random() * a.length | 0];
+  const readVar = (el, name) => getComputedStyle(el).getPropertyValue(name).trim();
+
+  let current = -1;
+  let busy = false;
+
+  $('#total').textContent = pad(slides.length);
+
+  // ---------- 标题逐字拆分 ----------
+  document.querySelectorAll('.slide h1, .slide h2').forEach(h => {
+    let c = 0;
+    const walk = node => {
+      [...node.childNodes].forEach(n => {
+        if (n.nodeType === 3) {
+          const frag = document.createDocumentFragment();
+          for (const ch of n.nodeValue) {
+            if (/\s/.test(ch)) { frag.appendChild(document.createTextNode(ch)); continue; }
+            const s = document.createElement('span');
+            s.className = 'ch';
+            s.style.setProperty('--c', c++);
+            s.textContent = ch;
+            frag.appendChild(s);
+          }
+          n.replaceWith(frag);
+        } else if (n.nodeType === 1 && n.tagName !== 'BR') walk(n);
+      });
+    };
+    walk(h);
+    h.classList.remove('rv');
+    h.classList.add('split');
+    h.setAttribute('aria-label', h.textContent);
+  });
+
+  // 列表项 / 标签的错峰序号
+  document.querySelectorAll('.timeline, .check, .tags').forEach(list => {
+    [...list.children].forEach((li, k) => li.style.setProperty('--li', k));
+  });
+
+  // ---------- 文字乱码解码效果 ----------
+  const GLYPHS = '▓▒░█<>/\\_=+*#01';
+  function scramble(el, dur = 800) {
+    const tn = [...el.childNodes].find(n => n.nodeType === 3 && n.nodeValue.trim());
+    if (!tn || reduced) return;
+    const final = tn.__final ??= tn.nodeValue;
+    const token = (el.__tok = (el.__tok || 0) + 1);
+    const t0 = performance.now();
+    const keep = /[\s/·–\-:]/;
+    const frame = now => {
+      if (el.__tok !== token) return;
+      const p = (now - t0) / dur;
+      let out = '';
+      for (let i = 0; i < final.length; i++) {
+        const ch = final[i];
+        out += keep.test(ch) || p > (i / final.length) * .6 + .35 ? ch : pick(GLYPHS);
+      }
+      tn.nodeValue = out;
+      if (p < 1) requestAnimationFrame(frame); else tn.nodeValue = final;
+    };
+    requestAnimationFrame(frame);
+  }
+
+  // ---------- 粒子系统 ----------
+  const FX = (() => {
+    const cv = $('#fx');
+    const ctx = cv.getContext('2d');
+    let W = 0, H = 0, DPR = 1, t = 0;
+    let parts = [];
+    let additive = false;
+    let meteors = false;
+    const pointer = { x: -1e4, y: -1e4 };
+    const sprites = new Map();
+
+    const rgb = hex => {
+      hex = hex.replace('#', '');
+      if (hex.length === 3) hex = [...hex].map(x => x + x).join('');
+      const n = parseInt(hex, 16);
+      return [n >> 16 & 255, n >> 8 & 255, n & 255];
+    };
+    function sprite(color) {
+      if (sprites.has(color)) return sprites.get(color);
+      const c = document.createElement('canvas');
+      c.width = c.height = 64;
+      const g = c.getContext('2d');
+      const [r, gg, b] = rgb(color);
+      const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+      gr.addColorStop(0, `rgba(${r},${gg},${b},1)`);
+      gr.addColorStop(.18, `rgba(${r},${gg},${b},.85)`);
+      gr.addColorStop(.45, `rgba(${r},${gg},${b},.25)`);
+      gr.addColorStop(1, `rgba(${r},${gg},${b},0)`);
+      g.fillStyle = gr;
+      g.fillRect(0, 0, 64, 64);
+      sprites.set(color, c);
+      return c;
+    }
+
+    const MODES = {
+      stars: { n: 180, make: (p, init, pal) => Object.assign(p, {
+        x: R(0, W), y: R(0, H * .8), vx: R(-.04, .04), vy: 0, r: R(.4, 1.7), a: R(.4, 1),
+        shape: 'dot', color: Math.random() < .15 ? pal[0] : '#fff', tw: R(.5, 2), z: R(.05, .4) }) },
+      dust: { n: 80, make: (p, init, pal) => Object.assign(p, {
+        x: R(0, W), y: R(0, H), vx: R(-.2, .2), vy: R(-.25, .05), r: R(.8, 2.4), a: R(.2, .5),
+        shape: 'dot', color: pick(pal), z: R(.2, 1), wrap: true }) },
+      lanterns: { n: 26, make: (p, init, pal) => Object.assign(p, {
+        x: R(0, W), y: init ? R(0, H) : H + R(40, 120), vx: R(-.1, .1), vy: R(-.7, -.25), r: R(8, 24), a: R(.5, .9),
+        shape: 'lantern', color: pick(['#ff8a3d', '#ffc861', '#ff5a3c']), sway: R(.2, .6), flick: true, z: R(.3, 1) }) },
+      embers: { n: 80, make: (p, init, pal) => Object.assign(p, {
+        x: R(0, W), y: init ? R(0, H) : H + R(10, 60), vx: R(-.2, .2), vy: R(-1.2, -.3), r: R(1.5, 4), a: R(.5, 1),
+        shape: 'glow', color: pick([pal[0], '#ff7a3d', '#ffd08a']), sway: R(.2, .8), flick: true, z: R(.3, 1) }) },
+      fireflies: { n: 55, make: (p, init, pal) => Object.assign(p, {
+        x: R(0, W), y: R(0, H), vx: R(-.4, .4), vy: R(-.4, .4), r: R(2.5, 5.5), a: R(.6, 1),
+        shape: 'glow', color: pick([pal[0], '#d6ff8a']), wander: true, tw: R(.8, 2.2), z: R(.3, 1), wrap: true }) },
+      bubbles: { n: 55, make: (p, init, pal) => Object.assign(p, {
+        x: R(0, W), y: init ? R(0, H) : H + R(10, 80), vx: 0, vy: R(-1.3, -.3), r: R(3, 16), a: R(.35, .8),
+        shape: 'ring', color: pick([pal[0], '#ffffff']), sway: R(.3, 1), z: R(.3, 1) }) },
+      petals: { n: 45, make: (p, init, pal) => Object.assign(p, {
+        x: init ? R(0, W) : R(-W * .3, W), y: init ? R(0, H) : R(-80, -10), vx: R(.3, 1), vy: R(.5, 1.3), r: R(5, 10), a: R(.55, .9),
+        shape: 'petal', color: pick(pal), rot: R(0, 6.28), vr: R(-.04, .04), sway: R(.3, 1), z: R(.3, 1) }) },
+      leaves: { n: 40, make: (p, init, pal) => Object.assign(p, {
+        x: init ? R(0, W) : R(-W * .3, W), y: init ? R(0, H) : R(-80, -10), vx: R(.4, 1.2), vy: R(.4, 1.1), r: R(6, 12), a: R(.5, .85),
+        shape: 'leaf', color: pick(pal), rot: R(0, 6.28), vr: R(-.03, .03), sway: R(.4, 1.2), z: R(.3, 1) }) },
+      bokeh: { n: 32, make: (p, init, pal) => Object.assign(p, {
+        x: R(0, W), y: R(0, H), vx: R(-.25, .25), vy: R(-.2, .2), r: R(25, 85), a: R(.12, .32),
+        shape: 'glow', color: pick(pal), tw: R(.3, .8), z: R(.4, 1.4), wrap: true }) },
+    };
+
+    function resize() {
+      DPR = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * DPR; cv.height = H * DPR;
+      cv.style.width = W + 'px'; cv.style.height = H + 'px';
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    }
+    resize();
+    addEventListener('resize', resize);
+
+    let cur = null;
+    function setMode(slide) {
+      if (reduced) return;
+      const name = slide.dataset.fx;
+      const pal = (slide.dataset.fxColors || readVar(slide, '--accent')).split(',').map(s => s.trim());
+      const [r, g, b] = rgb(readVar(slide, '--bg'));
+      additive = (r * .299 + g * .587 + b * .114) < 110;
+      meteors = name === 'stars';
+      parts.forEach(p => { if (!p.confetti) p.dying = true; });
+      const mode = MODES[name];
+      cur = mode ? { mode, pal } : null;
+      if (!mode) return;
+      const n = W < 700 ? Math.round(mode.n * .55) : mode.n;
+      for (let i = 0; i < n; i++) {
+        const p = { f: 0, ph: R(0, 6.28), rot: 0, vr: 0 };
+        mode.make(p, true, pal);
+        p.f = -R(0, 1.2); // 错开淡入
+        parts.push(p);
+      }
+    }
+
+    function burst(x, y, n = 120, power = 1) {
+      if (reduced) return;
+      const cols = ['#ffe08a', '#ff6fb1', '#5cc8ff', '#7fe0b8', '#ffffff', '#ff9a5a'];
+      for (let i = 0; i < n; i++) {
+        const ang = R(0, Math.PI * 2);
+        const sp = R(3, 13) * power;
+        parts.push({
+          x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - R(2, 6),
+          r: R(4, 8), a: 1, f: 1, color: pick(cols), shape: 'confetti', confetti: true,
+          rot: R(0, 6.28), vr: R(-.3, .3), ph: R(0, 6.28), life: R(90, 160), z: 0,
+        });
+      }
+    }
+
+    addEventListener('pointermove', e => { pointer.x = e.clientX; pointer.y = e.clientY; });
+    addEventListener('pointerleave', () => { pointer.x = pointer.y = -1e4; });
+
+    function draw(p, ox, oy, alpha) {
+      const x = p.x + ox, y = p.y + oy;
+      ctx.globalAlpha = alpha;
+      switch (p.shape) {
+        case 'dot':
+          ctx.fillStyle = p.color;
+          ctx.beginPath(); ctx.arc(x, y, p.r, 0, 6.283); ctx.fill();
+          break;
+        case 'glow': {
+          const s = sprite(p.color), d = p.r * 4;
+          ctx.drawImage(s, x - d / 2, y - d / 2, d, d);
+          break;
+        }
+        case 'lantern': {
+          const s = sprite(p.color), d = p.r * 5;
+          ctx.drawImage(s, x - d / 2, y - d / 2, d, d);
+          ctx.fillStyle = p.color;
+          ctx.beginPath(); ctx.ellipse(x, y, p.r * .42, p.r * .55, 0, 0, 6.283); ctx.fill();
+          break;
+        }
+        case 'ring':
+          ctx.strokeStyle = p.color; ctx.lineWidth = 1.2;
+          ctx.beginPath(); ctx.arc(x, y, p.r, 0, 6.283); ctx.stroke();
+          ctx.globalAlpha = alpha * .5; ctx.fillStyle = p.color;
+          ctx.beginPath(); ctx.arc(x - p.r * .35, y - p.r * .35, p.r * .22, 0, 6.283); ctx.fill();
+          break;
+        case 'petal':
+        case 'leaf':
+          ctx.save(); ctx.translate(x, y); ctx.rotate(p.rot);
+          ctx.scale(1, Math.cos(t * .05 + p.ph));
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          if (p.shape === 'petal') ctx.ellipse(0, 0, p.r, p.r * .55, 0, 0, 6.283);
+          else { ctx.moveTo(-p.r, 0); ctx.quadraticCurveTo(0, -p.r * .7, p.r, 0); ctx.quadraticCurveTo(0, p.r * .7, -p.r, 0); }
+          ctx.fill(); ctx.restore();
+          break;
+        case 'confetti':
+          ctx.save(); ctx.translate(x, y); ctx.rotate(p.rot);
+          ctx.scale(Math.cos(t * .15 + p.ph), 1);
+          ctx.fillStyle = p.color; ctx.fillRect(-p.r / 2, -p.r * .3, p.r, p.r * .6);
+          ctx.restore();
+          break;
+        case 'meteor': {
+          const g = ctx.createLinearGradient(x, y, x - p.vx * 12, y - p.vy * 12);
+          g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+          ctx.strokeStyle = g; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - p.vx * 12, y - p.vy * 12); ctx.stroke();
+          break;
+        }
+      }
+    }
+
+    function loop() {
+      t++;
+      ctx.clearRect(0, 0, W, H);
+      ctx.globalCompositeOperation = additive ? 'lighter' : 'source-over';
+      const px = parseFloat(document.documentElement.style.getPropertyValue('--px')) || 0;
+      const py = parseFloat(document.documentElement.style.getPropertyValue('--py')) || 0;
+
+      if (meteors && Math.random() < .012) {
+        parts.push({ x: R(W * .3, W * 1.1), y: R(-40, H * .3), vx: -R(9, 15), vy: R(3, 6), r: 1, a: 1, f: 1,
+          shape: 'meteor', life: 70, z: 0, ph: 0, meteor: true });
+      }
+
+      for (let i = parts.length - 1; i >= 0; i--) {
+        const p = parts[i];
+        if (p.confetti) { p.vy += .22; p.vx *= .985; p.vy *= .985; }
+        if (p.wander) { p.vx += R(-.06, .06); p.vy += R(-.06, .06); p.vx *= .97; p.vy *= .97; }
+        // 鼠标排斥
+        const dx = p.x - pointer.x, dy = p.y - pointer.y, d2 = dx * dx + dy * dy;
+        if (!p.confetti && !p.meteor && d2 < 19600) {
+          const d = Math.sqrt(d2) || 1, f = (140 - d) / 140;
+          p.x += dx / d * f * 4; p.y += dy / d * f * 4;
+        }
+        p.x += p.vx + (p.sway ? Math.sin(t * .02 + p.ph) * p.sway : 0);
+        p.y += p.vy;
+        p.rot += p.vr || 0;
+
+        if (p.life !== undefined && --p.life <= 0) { parts.splice(i, 1); continue; }
+        if (p.dying) { p.f -= .025; if (p.f <= 0) { parts.splice(i, 1); continue; } }
+        else if (p.f < 1) p.f += .02;
+
+        // 出界处理
+        const m = 120;
+        if (!p.dying && !p.confetti && !p.meteor && cur) {
+          if (p.wrap) {
+            if (p.x < -m) p.x = W + m; else if (p.x > W + m) p.x = -m;
+            if (p.y < -m) p.y = H + m; else if (p.y > H + m) p.y = -m;
+          } else if (p.y < -m || p.y > H + m || p.x > W + m || p.x < -W * .4) {
+            cur.mode.make(p, false, cur.pal); p.f = 0;
+          }
+        } else if (p.confetti && p.y > H + 50) { parts.splice(i, 1); continue; }
+
+        let alpha = p.a * Math.max(0, Math.min(1, p.f));
+        if (p.tw) alpha *= .45 + .55 * Math.sin(t * .04 * p.tw + p.ph) ** 2;
+        if (p.flick) alpha *= .75 + .25 * Math.sin(t * .25 + p.ph);
+        if (p.confetti && p.life < 40) alpha *= p.life / 40;
+        if (alpha <= .01) continue;
+        draw(p, -px * 40 * p.z, -py * 40 * p.z, alpha);
+      }
+      ctx.globalAlpha = 1;
+      requestAnimationFrame(loop);
+    }
+    if (!reduced) requestAnimationFrame(loop);
+
+    return { setMode, burst };
+  })();
+
+  // ---------- 鼠标视差 / 光标 ----------
+  const cursor = $('#cursor');
+  let tx = 0, ty = 0, sx = 0, sy = 0, cx = -100, cy = -100, rx = -100, ry = -100;
+  addEventListener('pointermove', e => {
+    tx = e.clientX / innerWidth * 2 - 1;
+    ty = e.clientY / innerHeight * 2 - 1;
+    cx = e.clientX; cy = e.clientY;
+    if (e.pointerType === 'mouse') cursor.classList.add('on');
+  });
+  document.addEventListener('pointerover', e => {
+    cursor.classList.toggle('big', !!e.target.closest('button, label, .card, a'));
+  });
+  (function parallax() {
+    sx += (tx - sx) * .06; sy += (ty - sy) * .06;
+    rx += (cx - rx) * .22; ry += (cy - ry) * .22;
+    document.documentElement.style.setProperty('--px', sx.toFixed(4));
+    document.documentElement.style.setProperty('--py', sy.toFixed(4));
+    cursor.style.transform = `translate(${rx}px, ${ry}px)`;
+    if (!reduced) requestAnimationFrame(parallax);
+  })();
+
+  // 卡片 3D 倾斜 + 高光
+  if (finePointer && !reduced) {
+    document.querySelectorAll('.card').forEach(card => {
+      card.addEventListener('pointermove', e => {
+        const r = card.getBoundingClientRect();
+        const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+        card.classList.add('hover');
+        card.style.setProperty('--ry', `${(x - .5) * 10}deg`);
+        card.style.setProperty('--rx', `${(.5 - y) * 8}deg`);
+        card.style.setProperty('--mx', `${x * 100}%`);
+        card.style.setProperty('--my', `${y * 100}%`);
+      });
+      card.addEventListener('pointerleave', () => {
+        card.style.setProperty('--rx', '0deg');
+        card.style.setProperty('--ry', '0deg');
+        setTimeout(() => card.classList.remove('hover'), 200);
+      });
+    });
+  }
+
+  // ---------- 导航 ----------
+  const mapPath = $('#mapPath');
+  const len = Math.ceil(mapPath.getTotalLength());
+  document.querySelectorAll('.map-path, .map-glow').forEach(p => p.style.setProperty('--len', len));
+
+  slides.forEach((s, i) => {
+    const b = document.createElement('button');
+    b.setAttribute('aria-label', s.dataset.title);
+    b.title = s.dataset.title;
+    b.onclick = () => go(i);
+    dotsEl.appendChild(b);
+  });
+
+  function updateChrome(i, dir) {
+    const s = slides[i];
+    [...dotsEl.children].forEach((d, k) => d.setAttribute('aria-current', k === i));
+    curEl.textContent = pad(i + 1);
+    curEl.classList.remove('flip');
+    curEl.style.setProperty('--from', dir < 0 ? '-100%' : '100%');
+    void curEl.offsetWidth;
+    curEl.classList.add('flip');
+    progress.style.width = `${((i + 1) / slides.length) * 100}%`;
+    document.documentElement.style.setProperty('--nav-accent', readVar(s, '--accent'));
+    document.documentElement.style.setProperty('--nav-fg', readVar(s, '--fg'));
+    prevBtn.disabled = i === 0;
+    nextBtn.disabled = i === slides.length - 1;
+    document.title = i === 0 ? '国庆潮港之旅' : `${s.dataset.title} · 国庆潮港之旅`;
+    history.replaceState(null, '', `#${i + 1}`);
+  }
+
+  function show(slide) {
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      slide.classList.add('shown');
+      slide.querySelectorAll('.scr').forEach(el => setTimeout(() => scramble(el, 900), 250));
+      slide.querySelectorAll('.date').forEach(el => setTimeout(() => scramble(el, 900), 350));
+      if (slide.hasAttribute('data-confetti')) {
+        setTimeout(() => { FX.burst(innerWidth * .2, innerHeight * .9, 90); FX.burst(innerWidth * .8, innerHeight * .9, 90); }, 500);
+      }
+    }));
+  }
+
+  // 过渡效果库
+  const T = {
+    circle: dir => ({
+      in:  [{ clipPath: `circle(0% at ${dir > 0 ? '100%' : '0%'} 50%)` }, { clipPath: `circle(150% at ${dir > 0 ? '100%' : '0%'} 50%)` }],
+      out: [{ transform: 'scale(1)', filter: 'brightness(1)' }, { transform: 'scale(.88)', filter: 'brightness(.4)' }],
+    }),
+    wipe: dir => ({
+      in:  [{ clipPath: dir > 0 ? 'inset(0 0 0 100%)' : 'inset(0 100% 0 0)', transform: `translateX(${dir * 12}%)` }, { clipPath: 'inset(0 0 0 0)', transform: 'translateX(0)' }],
+      out: [{ transform: 'translateX(0)' }, { transform: `translateX(${-dir * 30}%)` }],
+    }),
+    cube: dir => ({
+      in:  [{ transformOrigin: dir > 0 ? '0% 50%' : '100% 50%', transform: `translateX(${dir * 100}%) rotateY(${dir * 90}deg)`, filter: 'brightness(.4)' },
+            { transformOrigin: dir > 0 ? '0% 50%' : '100% 50%', transform: 'translateX(0) rotateY(0deg)', filter: 'brightness(1)' }],
+      out: [{ transformOrigin: dir > 0 ? '100% 50%' : '0% 50%', transform: 'translateX(0) rotateY(0deg)', filter: 'brightness(1)' },
+            { transformOrigin: dir > 0 ? '100% 50%' : '0% 50%', transform: `translateX(${-dir * 100}%) rotateY(${-dir * 90}deg)`, filter: 'brightness(.4)' }],
+      dur: 1200,
+    }),
+    shutter: 'custom',
+    zoom: () => ({
+      in:  [{ transform: 'scale(1.4)', opacity: 0, filter: 'blur(24px)' }, { transform: 'scale(1)', opacity: 1, filter: 'blur(0px)' }],
+      out: [{ transform: 'scale(1)', filter: 'blur(0px)' }, { transform: 'scale(.7)', filter: 'blur(14px)' }],
+    }),
+    diag: dir => ({
+      in:  [{ clipPath: dir > 0 ? 'polygon(100% 0, 100% 0, 100% 100%, 130% 100%)' : 'polygon(-30% 0, 0 0, 0 100%, 0 100%)' },
+            { clipPath: dir > 0 ? 'polygon(-30% 0, 100% 0, 100% 100%, 0 100%)' : 'polygon(0 0, 130% 0, 100% 100%, 0 100%)' }],
+      out: [{ transform: 'translateY(0) scale(1)' }, { transform: 'translateY(-6%) scale(.94)', filter: 'brightness(.5)' }],
+    }),
+    push: dir => ({
+      in:  [{ transform: `translateY(${dir * 100}%) scale(.9)`, borderRadius: '40px' }, { transform: 'translateY(0) scale(1)', borderRadius: '0px' }],
+      out: [{ transform: 'translateY(0)', filter: 'brightness(1)' }, { transform: `translateY(${-dir * 35}%) scale(.9)`, filter: 'brightness(.4)' }],
+    }),
+  };
+  const ORDER = ['circle', 'wipe', 'cube', 'shutter', 'zoom', 'diag', 'push'];
+
+  const shutterEl = $('#shutter');
+  async function runShutter(incoming, outgoing, dir) {
+    const bars = [...shutterEl.children];
+    const order = dir > 0 ? bars : [...bars].reverse();
+    const acc = readVar(incoming, '--accent');
+    const bg = readVar(incoming, '--bg');
+    order.forEach((b, k) => b.style.background = k % 2 ? bg : acc);
+    shutterEl.style.display = 'flex';
+    const a1 = order.map((b, k) => b.animate(
+      [{ transform: 'scaleY(0)', transformOrigin: '50% 100%' }, { transform: 'scaleY(1)', transformOrigin: '50% 100%' }],
+      { duration: 480, delay: k * 50, easing: EASE, fill: 'forwards' }));
+    await Promise.all(a1.map(a => a.finished));
+    outgoing.classList.remove('is-active', 'shown');
+    incoming.classList.add('is-active');
+    show(incoming);
+    const a2 = order.map((b, k) => b.animate(
+      [{ transform: 'scaleY(1)', transformOrigin: '50% 0%' }, { transform: 'scaleY(0)', transformOrigin: '50% 0%' }],
+      { duration: 480, delay: k * 50, easing: EASE, fill: 'forwards' }));
+    await Promise.all(a2.map(a => a.finished));
+    shutterEl.style.display = 'none';
+    a1.concat(a2).forEach(a => a.cancel());
+  }
+
+  function go(n) {
+    n = Math.max(0, Math.min(slides.length - 1, n));
+    if (n === current || busy) return;
+    const dir = n > current ? 1 : -1;
+    const incoming = slides[n];
+    const outgoing = slides[current];
+
+    incoming.querySelector('.slide-inner').scrollTop = 0;
+    incoming.classList.remove('shown');
+    updateChrome(n, dir);
+    FX.setMode(incoming);
+
+    if (!outgoing) {
+      incoming.classList.add('is-active');
+      current = n;
+      show(incoming);
+      return;
+    }
+
+    busy = true;
+    const done = () => { current = n; busy = false; };
+    const kind = reduced ? null : ORDER[Math.min(n, current) % ORDER.length];
+
+    if (kind === 'shutter') {
+      runShutter(incoming, outgoing, dir).then(done);
+      return;
+    }
+
+    incoming.classList.add('is-active');
+    outgoing.classList.remove('is-active');
+    outgoing.classList.add('is-leaving');
+    const fx = kind ? T[kind](dir) : { in: [{ opacity: 0 }, { opacity: 1 }], out: [{}, {}] };
+    const dur = reduced ? 1 : (fx.dur || DUR);
+    const opts = { duration: dur, easing: EASE };
+    const aIn = incoming.animate(fx.in, opts);
+    outgoing.animate(fx.out, opts);
+    setTimeout(() => show(incoming), dur * .35);
+
+    aIn.finished.then(() => {
+      outgoing.classList.remove('is-leaving', 'shown');
+      done();
+    });
+  }
+
+  const next = () => go(current + 1);
+  const prev = () => go(current - 1);
+  prevBtn.onclick = prev;
+  nextBtn.onclick = next;
+
+  document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => go(+b.dataset.go)));
+
+  addEventListener('keydown', e => {
+    if (e.target.matches('input')) return;
+    if (['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); next(); }
+    else if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); prev(); }
+    else if (e.key === 'Home') go(0);
+    else if (e.key === 'End') go(slides.length - 1);
+    else if (e.key === 'f' || e.key === 'F') {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen?.().catch(() => {});
+    }
+  });
+
+  // 滚轮：内容滚到边缘才翻页
+  let wheelLock = 0;
+  addEventListener('wheel', e => {
+    if (current < 0) return;
+    const inner = slides[current].querySelector('.slide-inner');
+    const atTop = inner.scrollTop <= 0;
+    const atBottom = inner.scrollTop + inner.clientHeight >= inner.scrollHeight - 2;
+    if ((e.deltaY > 0 && !atBottom) || (e.deltaY < 0 && !atTop)) return;
+    const now = Date.now();
+    if (now - wheelLock < 1300 || Math.abs(e.deltaY) < 20) return;
+    wheelLock = now;
+    e.deltaY > 0 ? next() : prev();
+  }, { passive: true });
+
+  // 触摸横滑
+  let tsx = 0, tsy = 0;
+  addEventListener('touchstart', e => { tsx = e.touches[0].clientX; tsy = e.touches[0].clientY; }, { passive: true });
+  addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - tsx;
+    const dy = e.changedTouches[0].clientY - tsy;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.3) dx < 0 ? next() : prev();
+  }, { passive: true });
+
+  // 清单（仅保存在本机浏览器）
+  const boxes = [...document.querySelectorAll('#checklist input')];
+  try {
+    const saved = JSON.parse(localStorage.getItem('trip-checklist') || '[]');
+    boxes.forEach((b, i) => b.checked = !!saved[i]);
+  } catch {}
+  boxes.forEach(b => b.addEventListener('change', e => {
+    try { localStorage.setItem('trip-checklist', JSON.stringify(boxes.map(x => x.checked))); } catch {}
+    if (b.checked) {
+      const r = b.getBoundingClientRect();
+      FX.burst(r.left + r.width / 2, r.top + r.height / 2, 18, .5);
+    }
+    if (boxes.every(x => x.checked)) {
+      for (let k = 0; k < 5; k++) setTimeout(() => FX.burst(R(innerWidth * .15, innerWidth * .85), R(innerHeight * .2, innerHeight * .6), 110, 1.1), k * 220);
+    }
+  }));
+
+  // ---------- 开场 ----------
+  const start = parseInt(location.hash.slice(1), 10);
+  const first = Number.isFinite(start) ? start - 1 : 0;
+  const intro = $('#intro');
+  if (reduced) {
+    intro.remove();
+    go(first);
+  } else {
+    let opened = false;
+    const open = () => {
+      if (opened) return;
+      opened = true;
+      intro.classList.add('open');
+      go(first);
+      setTimeout(() => intro.remove(), 1200);
+    };
+    intro.addEventListener('click', open);
+    setTimeout(open, 2100);
+  }
+})();
+</script>
+</body>
+</html>
