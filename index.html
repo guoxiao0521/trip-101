@@ -128,6 +128,24 @@
   }
   .leg .arr { font-family: var(--mono); color: var(--accent); font-size: 12px; }
 
+  /* ---------- 天气 ---------- */
+  .wx { margin-top: 12px; border: 1px solid var(--line); border-radius: 4px; background: #fff6; }
+  .wx-row {
+    display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; align-items: center;
+    padding: 10px 12px; border-top: 1px solid var(--line);
+  }
+  .wx-row:first-child { border-top: 0; }
+  .wx-ico { font-size: 30px; line-height: 1; grid-row: span 2; }
+  .wx-main { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; font-size: 14px; font-weight: 700; }
+  .wx-main .t { font-family: var(--mono); font-size: 16px; }
+  .wx-main .t i { font-style: normal; color: var(--sea); }
+  .wx-main .t em { font-style: normal; color: var(--accent); }
+  .wx-main .d { font-family: var(--mono); font-size: 11px; color: var(--muted); font-weight: 700; }
+  .wx-sub { font-size: 12px; color: var(--muted); }
+  .wx-sub .rain { color: var(--sea); font-weight: 700; }
+  .wx-msg { padding: 10px 12px; font-size: 12px; color: var(--muted); }
+  .wx-src { padding: 0 12px 8px; font-size: 11px; color: var(--muted); }
+
   .block-title {
     margin: 22px 0 10px;
     font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .16em;
@@ -365,7 +383,7 @@ const LEGS = [
 // 文本中的 {key} 或 {key|显示文字} 会渲染为可点击的地图标记
 const DAYS = [
   {
-    date: '9/30', wd: '周三', title: '出发，去潮州',
+    wx: 'cz', date: '9/30', wd: '周三', title: '出发，去潮州',
     leg: ['上海', '揭阳', '潮州古城'],
     steps: [
       ['出发', '<b>上海出发</b>，前往 {jy}'],
@@ -376,7 +394,7 @@ const DAYS = [
     focus: ['jy', 'czHotel', 'pfj'],
   },
   {
-    date: '10/1', wd: '周四 · 国庆', title: '潮州古城一整天',
+    wx: 'cz', date: '10/1', wd: '周四 · 国庆', title: '潮州古城一整天',
     lead: '白天逛古城，吃够潮汕味，晚上夜行去惠州。',
     leg: ['潮州古城', '21:00 出发', '惠州'],
     steps: [
@@ -391,7 +409,7 @@ const DAYS = [
     focus: ['gjq', 'kys', 'hwg', 'pfj', 'czHotel'],
   },
   {
-    date: '10/2', wd: '周五', title: '惠州，慢一点',
+    wx: 'hz', date: '10/2', wd: '周五', title: '惠州，慢一点',
     lead: '“一住惠州，便一生惠州”。前一晚到得晚，今天睡到自然醒。',
     steps: [
       ['上午', '{xh}，走到 {szt}，适合散步骑车'],
@@ -404,7 +422,7 @@ const DAYS = [
     focus: ['xh', 'szt', 'dpc', 'sdj', 'jsh', 'hzHotel'],
   },
   {
-    date: '10/3', wd: '周六', title: '高铁入港，下午去西贡',
+    wx: 'hk', date: '10/3', wd: '周六', title: '高铁入港，下午去西贡',
     leg: ['惠州', '高铁', '香港', '港铁 + 小巴', '西贡'],
     steps: [
       ['上午', '惠州坐<b>高铁</b>到 {xjl}'],
@@ -417,7 +435,7 @@ const DAYS = [
     focus: ['xjl', 'hkHotel', 'ch', 'sk'],
   },
   {
-    date: '10/4', wd: '周日', title: '南丫岛，离岛一日',
+    wx: 'hk', date: '10/4', wd: '周日', title: '南丫岛，离岛一日',
     lead: '没有汽车的小岛：渡轮、山径、海滩和海鲜。',
     leg: ['中环', '渡轮', '榕树湾', '徒步', '索罟湾', '渡轮', '中环'],
     steps: [
@@ -430,7 +448,7 @@ const DAYS = [
     focus: ['c4', 'ysw', 'hsy', 'jlj', 'sgw'],
   },
   {
-    date: '10/5', dateTo: '10/6', wd: '周一 / 周二', title: '城市漫游 & 香港故宫',
+    wx: 'hk', date: '10/5', dateTo: '10/6', wd: '周一 / 周二', title: '城市漫游 & 香港故宫',
     lead: '两天留给市区：博物馆、维港、老街和茶餐厅。',
     steps: [
       ['10/5', '{gg} · 西九文化区，港铁九龙站 / 柯士甸站步行可达，提前官网预约'],
@@ -443,7 +461,7 @@ const DAYS = [
     focus: ['gg', 'tst', 'star', 'zh', 'peak', 'mk', 'hkHotel'],
   },
   {
-    date: '10/7', wd: '周三', title: '经深圳，回上海',
+    wx: 'sz', date: '10/7', wd: '周三', title: '经深圳，回上海',
     leg: ['香港', '深圳', '上海'],
     steps: [
       ['上午', '从 {hkHotel} 退房出发'],
@@ -520,6 +538,7 @@ document.getElementById('days').innerHTML = DAYS.map((d, i) => {
     <h2>${esc(d.title)}</h2>
     ${d.lead ? `<p class="lead">${esc(d.lead)}</p>` : ''}
     ${d.leg ? `<div class="leg">${d.leg.map(esc).join('<span class="arr">→</span>')}</div>` : ''}
+    <div class="wx" data-wx="${i}"><div class="wx-msg">天气加载中…</div></div>
     <div class="block-title">行程</div>
     <ol class="steps">
       ${d.steps.map(([t, h]) => `<li><span class="time">${t}</span><div>${withPins(h, d)}</div></li>`).join('')}
@@ -689,6 +708,83 @@ document.querySelector('.book').addEventListener('click', e => {
 
 showDay(0, true);
 onScroll();
+
+/* ============ 天气（Open-Meteo，免 Key） ============ */
+const WX_CITIES = {
+  cz: { n: '潮州', ll: [23.66, 116.64] },
+  hz: { n: '惠州', ll: [23.09, 114.41] },
+  hk: { n: '香港', ll: [22.32, 114.17] },
+  sz: { n: '深圳', ll: [22.54, 114.06] },
+};
+const YEAR = 2026;
+const isoOf = md => { const [m, d] = md.split('/'); return `${YEAR}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`; };
+function daysOf(d) {
+  const out = [isoOf(d.date)];
+  if (d.dateTo) {
+    const cur = new Date(out[0] + 'T00:00:00Z'), end = new Date(isoOf(d.dateTo) + 'T00:00:00Z');
+    while (cur < end) { cur.setUTCDate(cur.getUTCDate() + 1); out.push(cur.toISOString().slice(0, 10)); }
+  }
+  return out;
+}
+// WMO weather code → [图标, 描述]
+function wmo(c) {
+  if (c === 0) return ['☀️', '晴'];
+  if (c === 1) return ['🌤️', '大部晴朗'];
+  if (c === 2) return ['⛅', '多云'];
+  if (c === 3) return ['☁️', '阴'];
+  if (c === 45 || c === 48) return ['🌫️', '有雾'];
+  if (c >= 51 && c <= 57) return ['🌦️', '毛毛雨'];
+  if (c === 61 || c === 80) return ['🌦️', '小雨'];
+  if (c === 63 || c === 81) return ['🌧️', '中雨'];
+  if (c === 65 || c === 82) return ['🌧️', '大雨'];
+  if (c === 66 || c === 67) return ['🌧️', '冻雨'];
+  if (c >= 71 && c <= 77) return ['❄️', '雪'];
+  if (c === 85 || c === 86) return ['❄️', '阵雪'];
+  if (c === 95) return ['⛈️', '雷阵雨'];
+  if (c === 96 || c === 99) return ['⛈️', '强雷暴'];
+  return ['🌡️', '未知'];
+}
+const WX_CACHE = 'trip101-weather';
+async function loadCity(key) {
+  const { ll: [lat, lon] } = WX_CITIES[key];
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+    `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,wind_speed_10m_max,uv_index_max` +
+    `&timezone=Asia%2FShanghai&forecast_days=16`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(r.status);
+  return (await r.json()).daily;
+}
+function wxRow(date, i, city, cd, stale) {
+  if (i < 0) return `<div class="wx-row"><div class="wx-ico">🕓</div><div class="wx-main"><span>${date.slice(5).replace('-', '/')}</span></div><div class="wx-sub">暂无预报（预报最多提前 16 天，出发前会自动更新）</div></div>`;
+  const [ico, txt] = wmo(cd.weather_code[i]);
+  const p = cd.precipitation_probability_max[i], mm = cd.precipitation_sum[i];
+  const wet = p >= 50 || mm >= 5;
+  return `<div class="wx-row">
+    <div class="wx-ico">${ico}</div>
+    <div class="wx-main"><span>${txt}</span><span class="t"><i>${Math.round(cd.temperature_2m_min[i])}°</i> / <em>${Math.round(cd.temperature_2m_max[i])}°</em></span><span class="d">${city} · ${date.slice(5).replace('-', '/')}</span></div>
+    <div class="wx-sub">${wet ? '<span class="rain">☂ 记得带伞</span> · ' : ''}降水概率 ${p ?? '–'}% · 风 ${Math.round(cd.wind_speed_10m_max[i])} km/h · 紫外线 ${Math.round(cd.uv_index_max[i])}</div>
+  </div>`;
+}
+async function initWeather() {
+  const need = [...new Set(DAYS.map(d => d.wx))];
+  const data = {}; let stale = false;
+  let cache = {};
+  try { cache = JSON.parse(localStorage.getItem(WX_CACHE)) || {}; } catch {}
+  await Promise.all(need.map(async k => {
+    try { data[k] = await loadCity(k); cache[k] = data[k]; }
+    catch { if (cache[k]) { data[k] = cache[k]; stale = true; } }
+  }));
+  try { localStorage.setItem(WX_CACHE, JSON.stringify(cache)); } catch {}
+  DAYS.forEach((d, n) => {
+    const box = document.querySelector(`[data-wx="${n}"]`); if (!box) return;
+    const cd = data[d.wx];
+    if (!cd) { box.innerHTML = '<div class="wx-msg">天气暂时无法获取，请检查网络后刷新。</div>'; return; }
+    const city = WX_CITIES[d.wx].n;
+    box.innerHTML = daysOf(d).map(date => wxRow(date, cd.time.indexOf(date), city, cd)).join('') +
+      `<div class="wx-src">数据来自 Open-Meteo${stale ? ' · 当前离线，显示的是上次缓存' : ''}</div>`;
+  });
+}
+initWeather();
 
 /* ============ 清单 ============ */
 const KEY = 'trip101-checklist';
